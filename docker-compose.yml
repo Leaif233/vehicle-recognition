@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    container_name: vehicle-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./v3.pt:/app/v3.pt
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: vehicle-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - backend
+    restart: unless-stopped
