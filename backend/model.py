@@ -22,9 +22,9 @@ class VehicleRecognizer:
 
         with torch.no_grad():
             output = self.model(input_tensor)
-            print(f"模型输出: {output}")
-            probabilities = output[0]
+            if isinstance(output, (list, tuple)):
+                output = output[0]
+            probabilities = output.squeeze()
             confidence, predicted = torch.max(probabilities, 0)
-            print(f"预测索引: {predicted.item()}, 置信度: {confidence.item()}")
 
         return predicted.item(), confidence.item()
