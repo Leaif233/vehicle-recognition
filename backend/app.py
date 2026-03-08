@@ -15,7 +15,7 @@ app.add_middleware(
 
 recognizer = VehicleRecognizer("../v3.pt")
 
-vehicle_types = ["轿车", "SUV", "MPV", "跑车", "皮卡", "客车", "货车"]
+vehicle_types = ["AITO问界", "奥迪", "宝马", "奔驰", "本田", "大众", "东风风行", "东风纳米", "丰田", "吉利银河", "雷克萨斯", "理想汽车", "日产", "特斯拉", "星途"]
 
 @app.get("/health")
 async def health():
