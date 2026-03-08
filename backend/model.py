@@ -25,6 +25,8 @@ class VehicleRecognizer:
             if isinstance(output, (list, tuple)):
                 output = output[0]
             probabilities = output.squeeze()
+            print(f"概率分布: {probabilities}")
             confidence, predicted = torch.max(probabilities, 0)
+            print(f"预测: idx={predicted.item()}, conf={confidence.item()}")
 
         return predicted.item(), confidence.item()
