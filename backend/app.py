@@ -17,9 +17,6 @@ recognizer = VehicleRecognizer("../v3.pt")
 
 vehicle_types = ["轿车", "SUV", "MPV", "跑车", "皮卡", "客车", "货车"]
 
-print(f"定义的车型数量: {len(vehicle_types)}")
-print(f"模型实际类别数: {recognizer.num_classes}")
-
 @app.get("/health")
 async def health():
     return {"status": "ok"}
