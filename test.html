@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>车型识别助手</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+        }
+        .model-selector {
+            margin-bottom: 20px;
+        }
+        .model-selector label {
+            display: block;
+            margin-bottom: 8px;
+            color: #666;
+            font-weight: 500;
+        }
+        .model-selector select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+        }
+        #upload { display: none; }
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        .upload-btn:hover { transform: translateY(-2px); }
+        #preview {
+            max-width: 100%;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+        }
+        .vehicle-type {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .confidence {
+            color: #666;
+            font-size: 18px;
+        }
+        .model-used {
+            color: #999;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 车型识别助手</h1>
+        <div class="model-selector">
+            <label for="modelSelect">选择识别模型：</label>
+            <select id="modelSelect">
+                <option value="">加载中...</option>
+            </select>
+        </div>
+        <input type="file" id="upload" accept="image/*">
+        <button class="upload-btn" onclick="document.getElementById('upload').click()">📷 选择车辆图片</button>
+        <img id="preview" style="display:none">
+        <div id="result" class="result" style="display:none">
+            <div class="vehicle-type" id="vehicleType"></div>
+            <div class="confidence" id="confidence"></div>
+            <div class="model-used" id="modelUsed"></div>
+        </div>
+        <div id="loading" style="display:none;">
+            <div class="spinner"></div>
+            <div class="loading">识别中...</div>
+        </div>
+    </div>
+
+    <script>
+        // 加载模型列表
+        fetch('http://38.22.235.27/api/models')
+            .then(res => res.json())
+            .then(data => {
+                const select = document.getElementById('modelSelect');
+                select.innerHTML = '';
+                data.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    select.appendChild(option);
+                });
+            });
+
+        document.getElementById('upload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('preview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('model_name', document.getElementById('modelSelect').value);
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+
+            fetch('http://38.22.235.27/api/recognize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('loading').style.display = 'none';
+                if (data.success) {
+                    document.getElementById('vehicleType').textContent = data.vehicle_type;
+                    document.getElementById('confidence').textContent = '置信度：' + (data.confidence * 100).toFixed(0) + '%';
+                    document.getElementById('modelUsed').textContent = '使用模型：' + data.model_used;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    alert('识别失败');
+                }
+            })
+            .catch(err => {
+                document.getElementById('loading').style.display = 'none';
+                alert('上传失败：' + err.message);
+            });
+        });
+    </script>
+</body>
+</html>
