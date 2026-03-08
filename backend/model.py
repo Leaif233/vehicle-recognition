@@ -7,6 +7,7 @@ class VehicleRecognizer:
         self.device = torch.device('cpu')
         checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
         self.model = checkpoint if not isinstance(checkpoint, dict) else checkpoint.get('model', checkpoint.get('ema', checkpoint))
+        self.model.float()
         self.model.eval()
 
         self.transform = transforms.Compose([
